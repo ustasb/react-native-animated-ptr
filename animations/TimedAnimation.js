@@ -82,10 +82,10 @@ export default class TimedAnimation extends React.Component {
 
   componentDidMount() {
     this.triggerBindID = this.props.scrollY.addListener((scroll) => {
-      if(!this.state.triggered && this.props.isRefreshing) {
+      if(!this.state.triggered && this.state.isRefreshing) {
         this.setState({triggered: true});
         this.triggerAnimation();
-      } else if(this.state.triggered && !this.props.isRefreshing) {
+      } else if(this.state.triggered && !this.state.isRefreshing) {
         this.setState({triggered: false});
         this.stopAnimation();
       }
@@ -93,7 +93,12 @@ export default class TimedAnimation extends React.Component {
   }
   componentWillUnmount() {
     if(this.triggerBindID) {
-      this.state.scrollY.removeListener(this.triggerBindID);
+      this.props.scrollY.removeListener(this.triggerBindID);
+    }
+  }
+  componentWillReceiveProps(props) {
+    if (props.isRefreshing !== this.state.isRefreshing) {
+      this.setState({ isRefreshing: props.isRefreshing });
     }
   }
   triggerAnimation(cb) {
@@ -118,7 +123,7 @@ export default class TimedAnimation extends React.Component {
   }
 
   render() {
-    if(this.props.occurrence === 'BEFORE_REFRESH' || this.props.isRefreshing) {
+    if(this.props.occurrence === 'BEFORE_REFRESH' || this.state.isRefreshing) {
       return (
         this.props.componentType === 'Image' ?
           <Animated.Image
@@ -143,8 +148,8 @@ export default class TimedAnimation extends React.Component {
           >
             {React.Children.map(this.props.children, (child) => {
               return React.cloneElement(child, {
-                isRefreshing: this.props.isRefreshing,
-                scrollY: this.state.scrollY,
+                isRefreshing: this.state.isRefreshing,
+                scrollY: this.props.scrollY,
                 minPullDistance: this.props.minPullDistance
               })
             })}
